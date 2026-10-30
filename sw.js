@@ -1,5 +1,5 @@
 // Offline support: serve from network when possible, fall back to cache.
-const CACHE = 'freecell-v2';
+const CACHE = 'freecell-v3';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/engine.js', 'js/solver.js', 'js/solver-worker.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/apple-touch-icon.png', 'icons/icon-512.png',
@@ -19,8 +19,10 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  // Revalidate with the server every time so the page and its scripts never
+  // come from different versions (GitHub Pages lets browsers cache for 10 min).
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request.url, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));

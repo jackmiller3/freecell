@@ -976,5 +976,17 @@ if (restore()) {
 }
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // When a new version takes over, reload once so all files match. The game is saved, so nothing is lost.
+  if (navigator.serviceWorker.controller) {
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloaded) return;
+      reloaded = true;
+      saveGame();
+      location.reload();
+    });
+  }
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then((reg) => reg.update())
+    .catch(() => {});
 }
