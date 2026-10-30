@@ -1,5 +1,5 @@
 // Offline support: serve from network when possible, fall back to cache.
-const CACHE = 'freecell-v1';
+const CACHE = 'freecell-v2';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/engine.js', 'js/solver.js', 'js/solver-worker.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/apple-touch-icon.png', 'icons/icon-512.png',

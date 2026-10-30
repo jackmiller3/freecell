@@ -21,7 +21,7 @@ function store(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ }
 }
 
-const settings = { autoPlay: true, warn: true, fourColor: false, table: 'green', ...load(KEYS.settings, {}) };
+const settings = { autoPlay: true, warn: true, focus: true, fourColor: false, table: 'green', ...load(KEYS.settings, {}) };
 const stats = { played: 0, won: 0, streak: 0, bestStreak: 0, bestTime: null, daily: {}, ...load(KEYS.stats, {}) };
 const flags = load(KEYS.flags, {});
 
@@ -208,8 +208,27 @@ function positions(st) {
   return pos;
 }
 
+// Focus view: dim cards that are buried out of order, so what's playable
+// (ordered runs, cells) and the next card each foundation needs stand out.
+function applyFocus(st) {
+  const lit = new Set();
+  if (settings.focus) {
+    for (const col of st.c) {
+      for (let j = col.length - E.runLength(col); j < col.length; j++) lit.add(col[j]);
+    }
+    for (let s = 0; s < 4; s++) if (st.fd[s] < 13) lit.add(E.cardOf(st.fd[s] + 1, s));
+  }
+  const inCascade = new Set(st.c.flat());
+  for (let id = 0; id < 52; id++) {
+    const buried = inCascade.has(id) && !lit.has(id);
+    cardEls[id].classList.toggle('dim', settings.focus && buried);
+    cardEls[id].classList.toggle('next', settings.focus && inCascade.has(id) && lit.has(id) && st.fd[E.suitOf(id)] === E.rankOf(id) - 1);
+  }
+}
+
 function render(st, { instant = false } = {}) {
   if (instant) board.classList.add('instant');
+  applyFocus(st);
   const pos = positions(st);
   for (let id = 0; id < 52; id++) {
     const el = cardEls[id];
@@ -725,6 +744,7 @@ function dealAnimation() {
   // Gather the deck at the top centre, then fan it out column by column.
   const cx = (L.W - L.cw) / 2;
   board.classList.add('instant');
+  applyFocus(cur);
   for (let id = 0; id < 52; id++) {
     cardEls[id].style.transform = `translate3d(${cx}px, ${L.top}px, 0)`;
     cardEls[id].style.zIndex = 1;
@@ -869,6 +889,7 @@ for (const input of document.querySelectorAll('[data-setting]')) {
     store(KEYS.settings, settings);
     applySettings();
     updateWarning();
+    applyFocus(cur);
   });
 }
 for (const b of document.querySelectorAll('#swatches button')) {

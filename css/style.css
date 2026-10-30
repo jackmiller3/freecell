@@ -171,6 +171,20 @@ body.four-color .card.suit-1 { color: var(--diamond); }
   font: 700 calc(var(--cw) * 0.6) / 1 Georgia, "Times New Roman", serif;
 }
 
+/* Focus view */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #0d1a17;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.card.dim::after { opacity: 0.34; }
+.card.next .r { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+.card.next { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85), 0 1px 2.5px rgba(0, 0, 0, 0.32); }
+
 #board.instant .card { transition: none; }
 .card.dragging {
   transition: none;

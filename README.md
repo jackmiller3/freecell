@@ -5,6 +5,7 @@ A clean, fast FreeCell built for the iPhone (Pro Max included), with no dependen
 - **Only winnable deals.** Every deal is run through a solver before you see it. Unwinnable deals (like the classic #11982) are skipped.
 - **Hints.** Hint highlights a move that keeps the game winnable. Tap Hint again to play it.
 - **Rewind.** Rewind takes you back to the last position that could still be won. If you'd like to know as soon as a game turns unwinnable, a setting makes the Rewind button light up at that point.
+- **Focus view.** Cards buried out of order are dimmed. Ordered runs stay bright, and so does the next card each foundation needs, so you can see what to dig toward. You can turn it off in settings.
 - **Tap or drag.** Tap a card to send it to the best spot, or drag it exactly where you want it. Safe cards go up to the foundations automatically. Once the rest of the game plays itself, it finishes on its own.
 - Daily deal, play any deal by number (Microsoft-compatible numbering, 1–1,000,000), stats and streaks, four-color suits, table colors.
 - Your game is saved, so you pick up where you left off. It also works offline once you've added it to your Home Screen.
