@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FreeCell">
+<meta name="theme-color" content="#0b3a31">
+<meta name="description" content="A clean, fast FreeCell with hints, rewind-to-winnable, and only winnable deals.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<title>FreeCell</title>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Suits are drawn as SVG so iOS never swaps in emoji glyphs. Order: clubs, diamonds, hearts, spades. -->
+  <symbol id="suit-0" viewBox="0 0 100 100">
+    <circle cx="50" cy="27" r="21"/><circle cx="26" cy="58" r="21"/><circle cx="74" cy="58" r="21"/><circle cx="50" cy="52" r="12"/>
+    <path d="M45 56c0 18-5 30-15 40h40c-10-10-15-22-15-40z"/>
+  </symbol>
+  <symbol id="suit-1" viewBox="0 0 100 100"><path d="M50 3 86 50 50 97 14 50z"/></symbol>
+  <symbol id="suit-2" viewBox="0 0 100 100"><path d="M50 92C22 70 4 52 4 31 4 16 15 6 29 6c10 0 17 6 21 14 4-8 11-14 21-14 14 0 25 10 25 25 0 21-18 39-46 61z"/></symbol>
+  <symbol id="suit-3" viewBox="0 0 100 100"><path d="M50 3C62 22 96 38 96 61c0 13-10 22-22 22-9 0-16-4-19-11 1 11 5 18 13 24H32c8-6 12-13 13-24-3 7-10 11-19 11C14 83 4 74 4 61 4 38 38 22 50 3z"/></symbol>
+</svg>
+
+<div id="app">
+  <header id="hud">
+    <div class="hud-left">
+      <div class="title">FreeCell</div>
+      <div id="deal-no" class="sub">&nbsp;</div>
+    </div>
+    <div id="clock" class="hud-mid">0:00</div>
+    <div class="hud-right">
+      <div class="moves"><span id="moves">0</span><span class="sub">moves</span></div>
+      <button id="menu-btn" class="icon-btn" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="board" aria-label="Game board"></main>
+
+  <nav id="toolbar">
+    <button id="undo-btn" aria-label="Undo">
+      <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>
+      <span>Undo</span>
+    </button>
+    <button id="hint-btn" aria-label="Hint">
+      <svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.6 1 2.5h6c0-.9.2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>
+      <span>Hint</span>
+    </button>
+    <button id="rewind-btn" aria-label="Rewind to last winnable position">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+      <span>Rewind</span>
+    </button>
+    <button id="new-btn" aria-label="New deal">
+      <svg viewBox="0 0 24 24"><rect x="4" y="6" width="11" height="15" rx="2"/><path d="M9 3h9a2 2 0 0 1 2 2v12"/></svg>
+      <span>New</span>
+    </button>
+  </nav>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<div id="backdrop" hidden>
+  <section id="menu-sheet" class="sheet" hidden aria-label="Menu">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <h2>FreeCell</h2>
+      <button class="close" data-close aria-label="Close">Done</button>
+    </div>
+
+    <div class="actions">
+      <button id="m-new" class="primary">New deal</button>
+      <button id="m-daily">Daily deal <small id="daily-status"></small></button>
+      <button id="m-restart">Restart this deal</button>
+    </div>
+
+    <form id="deal-form" class="deal-form">
+      <label for="deal-input">Play deal #</label>
+      <input id="deal-input" type="number" inputmode="numeric" min="1" max="1000000" placeholder="1 – 1,000,000">
+      <button type="submit">Play</button>
+    </form>
+
+    <h3>Stats</h3>
+    <div class="stats" id="stats"></div>
+
+    <h3>Settings</h3>
+    <label class="setting"><span>Auto-move safe cards to foundations</span><input type="checkbox" class="switch" data-setting="autoPlay"></label>
+    <label class="setting"><span>Warn me when the game becomes unwinnable</span><input type="checkbox" class="switch" data-setting="warn"></label>
+    <label class="setting"><span>Four-color suits</span><input type="checkbox" class="switch" data-setting="fourColor"></label>
+    <div class="setting"><span>Table</span>
+      <div class="swatches" id="swatches">
+        <button data-table="green" aria-label="Green"></button>
+        <button data-table="navy" aria-label="Navy"></button>
+        <button data-table="plum" aria-label="Plum"></button>
+        <button data-table="slate" aria-label="Slate"></button>
+      </div>
+    </div>
+
+    <h3>How to play</h3>
+    <div class="help">
+      <p>Build all four suits up from Ace to King on the foundations (top right). In the columns, stack cards down in alternating colors. The four cells (top left) hold one card each.</p>
+      <p><b>Tap</b> a card to send it to the best spot, or <b>drag</b> it where you want. Tap a card inside an ordered run to move the whole run.</p>
+      <p><b>Hint</b> highlights a move that keeps the game winnable. Tap Hint again to play it.</p>
+      <p><b>Rewind</b> takes you back to the last position that could still be won.</p>
+      <p>Every deal is checked by a solver first. Unwinnable deals are skipped.</p>
+    </div>
+  </section>
+
+  <section id="win-sheet" class="sheet" hidden aria-label="Solved">
+    <div class="grabber"></div>
+    <h2 class="win-title">Solved!</h2>
+    <div class="win-sub" id="win-sub"></div>
+    <div class="stats" id="win-stats"></div>
+    <div class="actions">
+      <button id="w-new" class="primary">Next deal</button>
+      <button data-close>View board</button>
+    </div>
+  </section>
+</div>
+
+<div id="dealing" hidden><div class="spinner"></div><span>Finding a winnable deal…</span></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
