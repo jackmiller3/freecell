@@ -133,6 +133,8 @@ const zTimers = [];
 const cellSlots = [];
 const foundSlots = [];
 const cascadeSlots = [];
+const zoneLabels = [];
+const trays = [];
 
 function buildBoard() {
   const slot = (cls, inner = '') => {
@@ -142,12 +144,25 @@ function buildBoard() {
     board.appendChild(el);
     return el;
   };
+  for (const cls of ['cells', 'founds']) {
+    const el = document.createElement('div');
+    el.className = `tray ${cls}`;
+    board.appendChild(el);
+    trays.push(el);
+  }
   for (let i = 0; i < 4; i++) cellSlots.push(slot('cell'));
   for (let i = 0; i < 4; i++) {
     const s = FOUND_ORDER[i];
-    foundSlots[s] = slot('found', `<svg viewBox="0 0 100 100"><use href="#suit-${s}"/></svg>`);
+    foundSlots[s] = slot('found', `<span class="ace">A</span><svg viewBox="0 0 100 100"><use href="#suit-${s}"/></svg>`);
   }
   for (let i = 0; i < 8; i++) cascadeSlots.push(slot('cascade'));
+  for (const text of ['Free cells', 'Foundations']) {
+    const el = document.createElement('div');
+    el.className = 'zone-label';
+    el.textContent = text;
+    board.appendChild(el);
+    zoneLabels.push(el);
+  }
 
   for (let id = 0; id < 52; id++) {
     const r = E.rankOf(id);
@@ -176,13 +191,25 @@ function layout() {
   const ch = Math.round(cw * 1.4);
   const pad = Math.round((W - 8 * cw - 7 * gap) / 2);
   const top = 6;
-  L = { W, H, cw, ch, gap, pad, top, casY: top + ch + Math.max(12, Math.round(cw * 0.28)) };
+  L = { W, H, cw, ch, gap, pad, top, casY: top + ch + Math.max(28, Math.round(cw * 0.44)) };
   board.style.setProperty('--cw', `${cw}px`);
   board.style.setProperty('--ch', `${ch}px`);
   const put = (el, x, y) => { el.style.transform = `translate(${x}px, ${y}px)`; };
   for (let i = 0; i < 4; i++) put(cellSlots[i], colX(i), top);
   for (let i = 0; i < 4; i++) put(foundSlots[FOUND_ORDER[i]], colX(4 + i), top);
   for (let i = 0; i < 8; i++) put(cascadeSlots[i], colX(i), L.casY);
+  const labelY = top + ch + Math.max(5, Math.round(cw * 0.08));
+  const fontPx = Math.max(9, cw * 0.16);
+  const ext = narrow ? 1 : 5; // how far each tray reaches past its cards
+  zoneLabels.forEach((el, k) => {
+    el.style.width = `${4 * cw + 3 * gap}px`;
+    put(el, colX(4 * k), labelY);
+  });
+  trays.forEach((el, k) => {
+    el.style.width = `${4 * cw + 3 * gap + 2 * ext}px`;
+    el.style.height = `${labelY + fontPx + 4 - (top - 4)}px`;
+    put(el, colX(4 * k) - ext, top - 4);
+  });
 }
 
 const colX = (i) => L.pad + i * (L.cw + L.gap);
@@ -229,20 +256,29 @@ function applyFocus(st) {
 function render(st, { instant = false } = {}) {
   if (instant) board.classList.add('instant');
   applyFocus(st);
+  for (let s = 0; s < 4; s++) foundSlots[s].dataset.pile = Math.min(st.fd[s], 3);
   const pos = positions(st);
   for (let id = 0; id < 52; id++) {
     const el = cardEls[id];
     const p = pos[id];
-    const tf = `translate3d(${p.x}px, ${p.y}px, 0)`;
-    clearTimeout(zTimers[id]);
-    if (!instant && el.style.transform !== tf) {
-      // Fly above everything, then settle into the stack.
-      el.style.zIndex = 300 + p.z;
-      zTimers[id] = setTimeout(() => { el.style.zIndex = p.z; }, 280);
-    } else {
+    const prev = lastPos[id];
+    // Compare numbers, not the style string: browsers rewrite "0" as "0px",
+    // which made every card look moved and restacked the whole board.
+    const moved = !prev || prev.x !== p.x || prev.y !== p.y;
+    if (moved || zTimers[id]) {
+      clearTimeout(zTimers[id]);
+      zTimers[id] = 0;
+      if (moved && !instant) {
+        // Fly above everything, then settle into the stack.
+        el.style.zIndex = 300 + p.z;
+        zTimers[id] = setTimeout(() => { el.style.zIndex = p.z; zTimers[id] = 0; }, 280);
+      } else {
+        el.style.zIndex = p.z;
+      }
+    } else if (prev.z !== p.z) {
       el.style.zIndex = p.z;
     }
-    el.style.transform = tf;
+    el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
     lastPos[id] = p;
   }
   if (instant) {
@@ -638,6 +674,8 @@ function endDrag(e, cancelled) {
     return;
   }
   const m = cancelled ? null : dropTarget(d);
+  // Dragged cards are off their spot, so make the next render fly them in on top.
+  for (const id of d.ids) lastPos[id] = null;
   if (m) commit(m);
   else render(cur);
 }

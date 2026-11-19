@@ -116,6 +116,61 @@ svg { stroke-linecap: round; stroke-linejoin: round; }
 .slot svg { width: 46%; height: 46%; fill: rgba(255, 255, 255, 0.13); }
 .slot.cascade { border-style: dashed; border-color: rgba(255, 255, 255, 0.1); background: transparent; }
 
+/* Each group of the top row sits on its own panel. */
+.tray {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: calc(var(--cw) * 0.16);
+  pointer-events: none;
+}
+.tray.cells { background: rgba(0, 0, 0, 0.2); }
+.tray.founds {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+/* Free cells: recessed wells for holding cards. */
+.slot.cell {
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Foundations: raised, outlined targets with the suit and where it starts. */
+.slot.found {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.34);
+}
+.slot.found svg { width: 52%; height: 52%; fill: rgba(255, 255, 255, 0.3); }
+.slot.found .ace {
+  position: absolute;
+  left: calc(var(--cw) * 0.09);
+  top: calc(var(--cw) * 0.06);
+  font-size: calc(var(--cw) * 0.3);
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.32);
+  line-height: 1;
+}
+/* Built-up foundations show card edges peeking out below, like a pile. */
+.slot.found[data-pile="2"] { box-shadow: 0 3px 0 -0.5px rgba(255, 253, 247, 0.6); }
+.slot.found[data-pile="3"] { box-shadow: 0 3px 0 -0.5px rgba(255, 253, 247, 0.6), 0 6px 0 -1px rgba(255, 253, 247, 0.35); }
+
+.zone-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  text-align: center;
+  font-size: max(9px, calc(var(--cw) * 0.16));
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.7;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .card {
   position: absolute;
   left: 0;
