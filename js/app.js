@@ -133,7 +133,6 @@ const zTimers = [];
 const cellSlots = [];
 const foundSlots = [];
 const cascadeSlots = [];
-const zoneLabels = [];
 const trays = [];
 
 function buildBoard() {
@@ -156,13 +155,6 @@ function buildBoard() {
     foundSlots[s] = slot('found', `<span class="ace">A</span><svg viewBox="0 0 100 100"><use href="#suit-${s}"/></svg>`);
   }
   for (let i = 0; i < 8; i++) cascadeSlots.push(slot('cascade'));
-  for (const text of ['Free cells', 'Foundations']) {
-    const el = document.createElement('div');
-    el.className = 'zone-label';
-    el.textContent = text;
-    board.appendChild(el);
-    zoneLabels.push(el);
-  }
 
   for (let id = 0; id < 52; id++) {
     const r = E.rankOf(id);
@@ -191,23 +183,17 @@ function layout() {
   const ch = Math.round(cw * 1.4);
   const pad = Math.round((W - 8 * cw - 7 * gap) / 2);
   const top = 6;
-  L = { W, H, cw, ch, gap, pad, top, casY: top + ch + Math.max(28, Math.round(cw * 0.44)) };
+  L = { W, H, cw, ch, gap, pad, top, casY: top + ch + Math.max(16, Math.round(cw * 0.3)) };
   board.style.setProperty('--cw', `${cw}px`);
   board.style.setProperty('--ch', `${ch}px`);
   const put = (el, x, y) => { el.style.transform = `translate(${x}px, ${y}px)`; };
   for (let i = 0; i < 4; i++) put(cellSlots[i], colX(i), top);
   for (let i = 0; i < 4; i++) put(foundSlots[FOUND_ORDER[i]], colX(4 + i), top);
   for (let i = 0; i < 8; i++) put(cascadeSlots[i], colX(i), L.casY);
-  const labelY = top + ch + Math.max(5, Math.round(cw * 0.08));
-  const fontPx = Math.max(9, cw * 0.16);
   const ext = narrow ? 1 : 5; // how far each tray reaches past its cards
-  zoneLabels.forEach((el, k) => {
-    el.style.width = `${4 * cw + 3 * gap}px`;
-    put(el, colX(4 * k), labelY);
-  });
   trays.forEach((el, k) => {
     el.style.width = `${4 * cw + 3 * gap + 2 * ext}px`;
-    el.style.height = `${labelY + fontPx + 4 - (top - 4)}px`;
+    el.style.height = `${ch + 10}px`; // room for foundation pile edges
     put(el, colX(4 * k) - ext, top - 4);
   });
 }

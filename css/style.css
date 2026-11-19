@@ -156,20 +156,6 @@ svg { stroke-linecap: round; stroke-linejoin: round; }
 .slot.found[data-pile="2"] { box-shadow: 0 3px 0 -0.5px rgba(255, 253, 247, 0.6); }
 .slot.found[data-pile="3"] { box-shadow: 0 3px 0 -0.5px rgba(255, 253, 247, 0.6), 0 6px 0 -1px rgba(255, 253, 247, 0.35); }
 
-.zone-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  text-align: center;
-  font-size: max(9px, calc(var(--cw) * 0.16));
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0.7;
-  pointer-events: none;
-  white-space: nowrap;
-}
 
 .card {
   position: absolute;
